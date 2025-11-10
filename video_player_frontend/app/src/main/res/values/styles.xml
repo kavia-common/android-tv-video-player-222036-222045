@@ -5,5 +5,6 @@
         <!-- Customize your theme here -->
         <item name="android:windowBackground">@color/tv_background</item>
         <item name="android:colorPrimary">@color/tv_accent</item>
+        <!-- Ensure leanback focus highlights are visible on dark background -->
     </style>
 </resources>

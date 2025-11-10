@@ -2,6 +2,7 @@ package com.example.video_player_frontend.ui
 
 import android.os.Build
 import android.os.Bundle
+import android.util.Log
 import android.view.KeyEvent
 import android.view.LayoutInflater
 import android.view.View
@@ -14,6 +15,7 @@ import androidx.media3.ui.PlayerView
 import com.example.video_player_frontend.R
 
 /**
+ * PUBLIC_INTERFACE
  * Fragment that manages Media3 ExoPlayer playback with PlayerView controller.
  * Lifecycle: initialize player in onStart/onResume, release in onPause/onStop, respecting API level recommendations.
  * D-Pad controls default to PlayerView, but we also handle play/pause/seek for reliability.
@@ -38,13 +40,26 @@ class PlayerFragment : Fragment() {
         root.isFocusableInTouchMode = true
         root.requestFocus()
 
-        // Optional: Set content description/title for accessibility
-        playerView?.contentDescription = titleArg ?: "Video"
+        // PlayerView visibility and controller fallbacks for emulator black screen cases.
+        playerView?.apply {
+            contentDescription = titleArg ?: "Video"
+            keepScreenOn = true
+            useController = true
+            // Rely on stable defaults; controller will show on user interaction
+            requestFocus()
+            visibility = View.VISIBLE
+        }
+
+        Log.d("TVApp", "PlayerFragment created; title=$titleArg url=$urlArg")
 
         // Handle basic key events for TV remotes (play/pause/seek/back)
         root.setOnKeyListener { _, keyCode, event ->
             if (event.action != KeyEvent.ACTION_DOWN) return@setOnKeyListener false
-            val exo = player ?: return@setOnKeyListener false
+            val exo = player
+            if (exo == null) {
+                Log.w("TVApp", "Key pressed but player is null; keyCode=$keyCode")
+                return@setOnKeyListener false
+            }
             when (keyCode) {
                 KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE, KeyEvent.KEYCODE_DPAD_CENTER, KeyEvent.KEYCODE_ENTER -> {
                     if (exo.isPlaying) exo.pause() else exo.play()
@@ -59,12 +74,10 @@ class PlayerFragment : Fragment() {
                     true
                 }
                 KeyEvent.KEYCODE_DPAD_LEFT -> {
-                    // Seek backward 10s
                     exo.seekBack()
                     true
                 }
                 KeyEvent.KEYCODE_DPAD_RIGHT -> {
-                    // Seek forward 10s
                     exo.seekForward()
                     true
                 }
@@ -96,8 +109,13 @@ class PlayerFragment : Fragment() {
     private fun initializePlayer() {
         if (player != null) return
         val ctx = requireContext()
-        val url = urlArg ?: return
+        val url = urlArg
+        if (url.isNullOrBlank()) {
+            Log.e("TVApp", "No URL passed to PlayerFragment; cannot initialize player")
+            return
+        }
 
+        Log.d("TVApp", "Initializing ExoPlayer with url=$url")
         player = ExoPlayer.Builder(ctx).build().also { exo ->
             playerView?.player = exo
             exo.setMediaItem(buildMediaItem(url))
@@ -107,6 +125,7 @@ class PlayerFragment : Fragment() {
     }
 
     private fun releasePlayer() {
+        Log.d("TVApp", "Releasing ExoPlayer instance")
         playerView?.player = null
         player?.release()
         player = null
@@ -121,6 +140,8 @@ class PlayerFragment : Fragment() {
 
     override fun onResume() {
         super.onResume()
+        // Bring PlayerView to front to avoid overlay issues causing a black screen.
+        playerView?.bringToFront()
         if (Build.VERSION.SDK_INT < 24) {
             initializePlayer()
         }

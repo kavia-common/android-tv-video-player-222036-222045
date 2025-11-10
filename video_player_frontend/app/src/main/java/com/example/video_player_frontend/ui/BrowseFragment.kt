@@ -2,6 +2,7 @@ package com.example.video_player_frontend.ui
 
 import android.content.Intent
 import android.os.Bundle
+import android.util.Log
 import androidx.core.os.bundleOf
 import androidx.leanback.app.BrowseSupportFragment
 import androidx.leanback.widget.ArrayObjectAdapter
@@ -13,6 +14,7 @@ import com.example.video_player_frontend.model.VideoItem
 import com.example.video_player_frontend.util.VideoCatalog
 
 /**
+ * PUBLIC_INTERFACE
  * Leanback Browse screen showing a single row of static online videos.
  * D-Pad navigation is supported by Leanback default behaviors.
  */
@@ -27,6 +29,7 @@ class BrowseFragment : BrowseSupportFragment() {
         headersState = HEADERS_DISABLED
         isHeadersTransitionOnBackEnabled = false
 
+        Log.d("TVApp", "BrowseFragment onCreate; building rows")
         setupRows()
         setupClickListeners()
     }
@@ -42,11 +45,13 @@ class BrowseFragment : BrowseSupportFragment() {
 
         val listRow = ListRow(null, cardRowAdapter)
         rowsAdapter.add(listRow)
+        Log.d("TVApp", "BrowseFragment rows set with ${cardRowAdapter.size()} items")
     }
 
     private fun setupClickListeners() {
         onItemViewClickedListener = OnItemViewClickedListener { _, item, _, _ ->
             if (item is VideoItem) {
+                Log.d("TVApp", "Item clicked: title=${item.title} url=${item.url}")
                 val intent = Intent(requireContext(), PlayerActivity::class.java).apply {
                     putExtras(
                         bundleOf(

@@ -6,6 +6,11 @@
         android:name="android.software.leanback"
         android:required="true" />
 
+    <!-- DPAD navigation required for TV remotes -->
+    <uses-feature
+        android:name="android.hardware.dpad"
+        android:required="true" />
+
     <!-- Touchscreen not required for TV -->
     <uses-feature
         android:name="android.hardware.touchscreen"

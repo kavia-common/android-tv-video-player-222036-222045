@@ -15,6 +15,7 @@
         android:layout_height="match_parent"
         android:focusable="true"
         android:focusableInTouchMode="true"
-        android:keepScreenOn="true" />
+        android:keepScreenOn="true"
+        android:visibility="visible" />
 
 </FrameLayout>
