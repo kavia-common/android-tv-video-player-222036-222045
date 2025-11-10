@@ -2,7 +2,6 @@ package com.example.video_player_frontend.ui
 
 import android.content.Intent
 import android.view.KeyEvent
-import androidx.fragment.app.testing.launchActivity
 import androidx.test.core.app.ActivityScenario
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.espresso.Espresso.onView
