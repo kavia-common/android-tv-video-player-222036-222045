@@ -3,6 +3,7 @@ package com.example.video_player_frontend.ui
 import android.content.Intent
 import android.os.Bundle
 import android.util.Log
+import android.view.View
 import androidx.core.os.bundleOf
 import androidx.leanback.app.BrowseSupportFragment
 import androidx.leanback.widget.ArrayObjectAdapter
@@ -10,6 +11,7 @@ import androidx.leanback.widget.ListRow
 import androidx.leanback.widget.ListRowPresenter
 import androidx.leanback.widget.OnItemViewClickedListener
 import androidx.leanback.widget.Presenter
+import com.example.video_player_frontend.R
 import com.example.video_player_frontend.model.VideoItem
 import com.example.video_player_frontend.util.VideoCatalog
 
@@ -25,13 +27,24 @@ class BrowseFragment : BrowseSupportFragment() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        title = "Online Video Catalog"
+        title = getString(R.string.browse_title)
         headersState = HEADERS_DISABLED
         isHeadersTransitionOnBackEnabled = false
+        brandColor = androidx.core.content.ContextCompat.getColor(requireContext(), R.color.tv_accent)
 
         Log.d("TVApp", "BrowseFragment onCreate; building rows")
         setupRows()
         setupClickListeners()
+    }
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+        // Ensure adapter is set and initial focus/position prevents black screen feel
+        adapter = rowsAdapter
+        setSelectedPosition(0)
+        view.isFocusable = true
+        view.isFocusableInTouchMode = true
+        view.requestFocus()
     }
 
     private fun setupRows() {

@@ -4,13 +4,19 @@ import android.content.Context
 import android.graphics.Color
 import android.view.View
 import android.view.ViewGroup
+import androidx.core.content.ContextCompat
 import androidx.leanback.widget.ImageCardView
 import androidx.leanback.widget.Presenter
+import com.bumptech.glide.Glide
+import com.bumptech.glide.load.engine.DiskCacheStrategy
+import com.bumptech.glide.request.RequestOptions
+import com.example.video_player_frontend.R
 import com.example.video_player_frontend.model.VideoItem
 
 /**
- * Simple card presenter for video items in Leanback.
- * Uses title text prominently; no thumbnail loading to keep dependencies minimal.
+ * PUBLIC_INTERFACE
+ * Card presenter for video items in Leanback.
+ * Loads thumbnails via Glide with colorful placeholders and error fallbacks.
  */
 class VideoCardPresenter : Presenter() {
 
@@ -20,8 +26,15 @@ class VideoCardPresenter : Presenter() {
             setMainImageDimensions(320, 180)
             isFocusable = true
             isFocusableInTouchMode = true
-            setBackgroundColor(Color.DKGRAY)
+            setBackgroundColor(Color.TRANSPARENT)
+            // Show content text under title when focused
+            infoAreaBackground = ContextCompat.getDrawable(context, android.R.color.transparent)
+            // Enable selected/focused state highlighting
+            setSelected(true)
+            setFocusable(true)
         }
+        // Remove selected by default but keep focusable
+        cardView.isSelected = false
         return ViewHolder(cardView)
     }
 
@@ -30,12 +43,34 @@ class VideoCardPresenter : Presenter() {
         val cardView = viewHolder.view as ImageCardView
         cardView.titleText = video.title
         cardView.contentText = video.description
-        // We skip image loading to keep this minimal; ImageCardView still provides focus affordance.
-        cardView.mainImage = null
+
+        val placeholder = ContextCompat.getDrawable(cardView.context, R.drawable.placeholder_colorful)
+        val errorDrawable = ContextCompat.getDrawable(cardView.context, R.drawable.error_placeholder)
+
+        val opts = RequestOptions()
+            .placeholder(placeholder)
+            .error(errorDrawable)
+            .diskCacheStrategy(DiskCacheStrategy.AUTOMATIC)
+            .centerCrop()
+
+        val url = video.thumbnailUrl
+
+        if (!url.isNullOrBlank()) {
+            Glide.with(cardView.context)
+                .asBitmap()
+                .load(url)
+                .apply(opts)
+                .into(cardView.mainImageView)
+        } else {
+            // Fallback to colorful gradient so cards are never black
+            cardView.mainImage = placeholder
+        }
     }
 
     override fun onUnbindViewHolder(viewHolder: ViewHolder) {
         val cardView = viewHolder.view as ImageCardView
+        // Clear Glide to avoid leaks
+        Glide.with(cardView.context).clear(cardView.mainImageView)
         cardView.mainImage = null
     }
 }
